@@ -130,10 +130,8 @@ function showCategory(cat) {
   if (cat === 'Handbook') {
     document.getElementById('progress-label').textContent = `Complete K53 Handbook`;
     container.innerHTML = `
-      <div class="bg-white rounded-custom border border-gray-100 shadow-sm p-12 text-center">
-        <div class="text-4xl mb-4">📖</div>
-        <h3 class="text-xl font-bold text-slate-800 mb-2">Study Guide Handbook</h3>
-        <p class="text-slate-500 max-w-md mx-auto">The official K53 Handbook is a separate resource. Please use the categories on the left to study specific rules, signs, and controls interactively!</p>
+      <div class="bg-white rounded-custom border border-gray-100 shadow-sm h-[80vh] overflow-hidden">
+        <iframe src="assets/docs/iDriving-School-K53_optimized.pdf" class="w-full h-full border-0"></iframe>
       </div>
     `;
     return;
