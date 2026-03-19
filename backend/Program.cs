@@ -37,7 +37,7 @@ try
             var port = uri.Port > 0 ? uri.Port : 5432;
             var database = uri.AbsolutePath.TrimStart('/');
             
-            connectionString = $"Host={host};Port={port};Database={database};Username={user};Password={password};SSL Mode=Require;Trust Server Certificate=true";
+            connectionString = $"Host={host};Port={port};Database={database};Username={user};Password={password};SslMode=Require;TrustServerCertificate=true;";
         }
         catch (Exception ex)
         {
