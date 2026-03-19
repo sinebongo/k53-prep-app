@@ -8,16 +8,53 @@
 <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
 <script>
   tailwind.config = {
-    theme: { extend: { colors:{ primary:'#144bb8' }, fontFamily:{ sans:['Lexend','sans-serif'] }, borderRadius:{ custom:'8px' } } }
+    theme: { extend: { colors:{ primary:'#c1272d' }, fontFamily:{ sans:['Lexend','sans-serif'] }, borderRadius:{ custom:'8px' } } }
   }
 </script>
 <style>
   body { background:#f9fafb; font-family:'Lexend',sans-serif; }
   .nav-link { transition:background .15s,color .15s; }
   .nav-link:hover { background:#f1f5ff; }
-  .nav-link.active { background:#eff4ff; color:#144bb8; font-weight:600; }
+  .nav-link.active { background:#eff4ff; color:#c1272d; font-weight:600; }
   #modal-overlay { display:none; }
   #modal-overlay.open { display:flex; }
+
+  /* Drag-and-drop zone */
+  #drop-zone {
+    border: 2px dashed #d1d5db;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+    background: #f9fafb;
+  }
+  #drop-zone.dragover {
+    border-color: #c1272d;
+    background: #fff1f1;
+  }
+  #drop-zone.has-image {
+    border-color: #c1272d;
+    background: #fff;
+    padding: 8px;
+  }
+  #drop-zone img {
+    max-height: 140px;
+    max-width: 100%;
+    object-fit: contain;
+    border-radius: 6px;
+    display: block;
+    margin: 0 auto 6px;
+  }
+  #drop-zone .drop-hint { color:#9ca3af; font-size:0.78rem; pointer-events:none; }
+  #drop-zone .drop-hint svg { margin: 0 auto 6px; display:block; }
+  #drop-zone .remove-img {
+    margin-top:6px;
+    font-size:0.72rem;
+    color:#c1272d;
+    cursor:pointer;
+    text-decoration:underline;
+  }
 </style>
 </head>
 <body class="flex min-h-screen">
@@ -130,9 +167,24 @@
           class="mt-1 block w-full rounded-custom border-gray-300 text-sm focus:ring-primary"></textarea>
       </div>
       <div>
-        <label class="text-xs font-semibold text-gray-600 uppercase tracking-wider">Image URL (optional)</label>
-        <input id="f-imageurl" type="url" placeholder="https://..."
-          class="mt-1 block w-full rounded-custom border-gray-300 text-sm focus:ring-primary"/>
+        <label class="text-xs font-semibold text-gray-600 uppercase tracking-wider">Question Image (optional)</label>
+        <!-- Hidden input stores the final value (data URL or typed URL) -->
+        <input type="hidden" id="f-imageurl"/>
+        <!-- Drop zone -->
+        <div id="drop-zone" class="mt-1" onclick="document.getElementById('img-file-input').click()"
+          ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+          <div class="drop-hint" id="drop-hint">
+            <svg width="32" height="32" fill="none" stroke="#c1272d" stroke-width="1.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/>
+            </svg>
+            Drag &amp; drop an image here, or <strong style="color:#c1272d">click to browse</strong>
+          </div>
+        </div>
+        <!-- Fallback URL input -->
+        <input id="img-url-input" type="url" placeholder="Or paste an image URL (https://...)"
+          class="mt-2 block w-full rounded-custom border-gray-300 text-sm focus:ring-primary"
+          oninput="handleUrlInput(this.value)"/>
+        <input type="file" id="img-file-input" accept="image/*" class="hidden" onchange="handleFilePick(event)"/>
       </div>
       <div class="grid grid-cols-2 gap-3">
         <div>
@@ -240,6 +292,8 @@ function openModal(id) {
       const el = document.getElementById('f-' + f);
       if (el) el.value = f === 'correct' ? 'A' : '';
     });
+    document.getElementById('img-url-input').value = '';
+    resetDropZone();
     return;
   }
 
@@ -258,11 +312,81 @@ function openModal(id) {
   document.getElementById('f-optD').value = q.optionD;
   document.getElementById('f-correct').value = q.correctOption || 'A';
   document.getElementById('f-explanation').value = q.explanation || '';
+  // Show existing image in drop zone
+  if (q.imageUrl) {
+    showImagePreview(q.imageUrl);
+    document.getElementById('img-url-input').value = q.imageUrl.startsWith('data:') ? '' : q.imageUrl;
+  } else {
+    resetDropZone();
+    document.getElementById('img-url-input').value = '';
+  }
 }
 
 function closeModal() {
   document.getElementById('modal-overlay').classList.remove('open');
   document.getElementById('form-error').classList.add('hidden');
+  resetDropZone();
+  document.getElementById('img-url-input').value = '';
+}
+
+// ── Drag-and-drop / Image helpers ──────────────────────────────────
+function handleDragOver(e) {
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.add('dragover');
+}
+function handleDragLeave(e) {
+  document.getElementById('drop-zone').classList.remove('dragover');
+}
+function handleDrop(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  document.getElementById('drop-zone').classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) loadImageFile(file);
+}
+function handleFilePick(e) {
+  const file = e.target.files[0];
+  if (file) loadImageFile(file);
+  e.target.value = ''; // reset so same file can be re-picked
+}
+function handleUrlInput(url) {
+  if (url) {
+    document.getElementById('f-imageurl').value = url;
+    showImagePreview(url);
+  } else {
+    resetDropZone();
+  }
+}
+function loadImageFile(file) {
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    const dataUrl = ev.target.result;
+    document.getElementById('f-imageurl').value = dataUrl;
+    showImagePreview(dataUrl);
+  };
+  reader.readAsDataURL(file);
+}
+function showImagePreview(src) {
+  const zone = document.getElementById('drop-zone');
+  zone.classList.add('has-image');
+  zone.classList.remove('dragover');
+  zone.innerHTML = `
+    <img src="${src}" alt="preview"/>
+    <div class="remove-img" onclick="event.stopPropagation(); resetDropZone(); document.getElementById('f-imageurl').value=''; document.getElementById('img-url-input').value='';">✕ Remove image</div>
+  `;
+}
+function resetDropZone() {
+  const zone = document.getElementById('drop-zone');
+  zone.classList.remove('has-image','dragover');
+  zone.innerHTML = `
+    <div class="drop-hint" id="drop-hint">
+      <svg width="32" height="32" fill="none" stroke="#c1272d" stroke-width="1.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/>
+      </svg>
+      Drag &amp; drop an image here, or <strong style="color:#c1272d">click to browse</strong>
+    </div>`;
+  zone.onclick = () => document.getElementById('img-file-input').click();
+  document.getElementById('f-imageurl').value = '';
 }
 
 async function saveQuestion() {

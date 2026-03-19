@@ -12,6 +12,11 @@ public class QuestionsController : ControllerBase
     private readonly AppDbContext _db;
     private readonly IConfiguration _config;
 
+    // Read admin code from environment variable, fall back to appsettings.json for local dev
+    private string AdminCode => Environment.GetEnvironmentVariable("ADMIN_CODE")
+                                ?? _config["AdminCode"]
+                                ?? "admin1234";
+
     public QuestionsController(AppDbContext db, IConfiguration config)
     {
         _db = db;
@@ -32,8 +37,8 @@ public class QuestionsController : ControllerBase
             .ThenBy(q => q.Id)
             .Select(q => new {
                 q.Id, q.Category, q.SubCategory, q.Text, q.ImageUrl,
-                q.OptionA, q.OptionB, q.OptionC, q.OptionD, q.Explanation
-                // NOTE: CorrectOption is NOT returned here (study mode shows it separately)
+                q.OptionA, q.OptionB, q.OptionC, q.OptionD, q.Explanation,
+                q.CorrectOption
             })
             .ToListAsync();
 
@@ -44,8 +49,8 @@ public class QuestionsController : ControllerBase
     [HttpGet("test")]
     public async Task<IActionResult> GetTestQuestions()
     {
-        var rules   = await GetRandomQuestions("Rules", 28);
-        var signs   = await GetRandomQuestions("Signs", 28);
+        var rules    = await GetRandomQuestions("Rules", 28);
+        var signs    = await GetRandomQuestions("Signs", 28);
         var controls = await GetRandomQuestions("Controls", 8);
 
         var allQuestions = rules.Concat(signs).Concat(controls)
@@ -72,7 +77,7 @@ public class QuestionsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] QuestionDto dto, [FromHeader(Name="X-Admin-Code")] string? adminCode)
     {
-        if (adminCode != _config["AdminCode"]) return Unauthorized("Invalid admin code.");
+        if (adminCode != AdminCode) return Unauthorized();
 
         var q = new Question {
             Category = dto.Category, SubCategory = dto.SubCategory, Text = dto.Text,
@@ -89,7 +94,7 @@ public class QuestionsController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] QuestionDto dto, [FromHeader(Name="X-Admin-Code")] string? adminCode)
     {
-        if (adminCode != _config["AdminCode"]) return Unauthorized("Invalid admin code.");
+        if (adminCode != AdminCode) return Unauthorized();
 
         var q = await _db.Questions.FindAsync(id);
         if (q == null) return NotFound();
@@ -106,7 +111,7 @@ public class QuestionsController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id, [FromHeader(Name="X-Admin-Code")] string? adminCode)
     {
-        if (adminCode != _config["AdminCode"]) return Unauthorized("Invalid admin code.");
+        if (adminCode != AdminCode) return Unauthorized();
 
         var q = await _db.Questions.FindAsync(id);
         if (q == null) return NotFound();

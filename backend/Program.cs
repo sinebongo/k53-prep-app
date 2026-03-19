@@ -8,22 +8,46 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-// SQLite database
-builder.Services.AddDbContext<AppDbContext>(opt =>
-    opt.UseSqlite("Data Source=k53prep.db"));
+// --- Database: PostgreSQL in production, SQLite locally ---
+var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
+if (!string.IsNullOrEmpty(connectionString))
+{
+    // Heroku/Railway-style: postgres://user:pass@host:port/db
+    // Convert to Npgsql format if needed
+    if (connectionString.StartsWith("postgres://"))
+    {
+        var uri = new Uri(connectionString);
+        connectionString = $"Host={uri.Host};Port={uri.Port};Database={uri.AbsolutePath.TrimStart('/')};Username={uri.UserInfo.Split(':')[0]};Password={uri.UserInfo.Split(':')[1]};SSL Mode=Require;Trust Server Certificate=true";
+    }
+    builder.Services.AddDbContext<AppDbContext>(opt => opt.UseNpgsql(connectionString));
+}
+else
+{
+    // Local development — use SQLite
+    builder.Services.AddDbContext<AppDbContext>(opt =>
+        opt.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=k53prep.db"));
+}
 
-// Allow the frontend (any origin in dev) to call the API
+// --- CORS ---
+var frontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL");
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("DevPolicy", policy =>
         policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+
+    if (!string.IsNullOrEmpty(frontendUrl))
+    {
+        options.AddPolicy("ProductionPolicy", policy =>
+            policy.WithOrigins(frontendUrl).AllowAnyMethod().AllowAnyHeader());
+    }
 });
 
 var app = builder.Build();
 
 // --- Middleware ---
-app.UseCors("DevPolicy");
-app.UseStaticFiles();   // Serve files from wwwroot (optional)
+var isProd = app.Environment.IsProduction();
+app.UseCors(isProd && !string.IsNullOrEmpty(frontendUrl) ? "ProductionPolicy" : "DevPolicy");
+app.UseStaticFiles();
 app.MapControllers();
 
 // --- Auto-migrate and seed on startup ---

@@ -15,6 +15,11 @@ public class StudentsController : ControllerBase
     private readonly AppDbContext _db;
     private readonly IConfiguration _config;
 
+    // Read admin code from environment variable, fall back to appsettings.json for local dev
+    private string AdminCode => Environment.GetEnvironmentVariable("ADMIN_CODE") 
+                                ?? _config["AdminCode"] 
+                                ?? "admin1234";
+
     public StudentsController(AppDbContext db, IConfiguration config)
     {
         _db = db; _config = config;
@@ -48,7 +53,7 @@ public class StudentsController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll([FromHeader(Name = "X-Admin-Code")] string? adminCode)
     {
-        if (adminCode != _config["AdminCode"]) return Unauthorized();
+        if (adminCode != AdminCode) return Unauthorized();
 
         var students = await _db.Students
             .Include(s => s.TestResults)
@@ -75,7 +80,7 @@ public class StudentsController : ControllerBase
     [HttpGet("{id}/results")]
     public async Task<IActionResult> GetResults(int id, [FromHeader(Name = "X-Admin-Code")] string? adminCode)
     {
-        if (adminCode != _config["AdminCode"]) return Unauthorized();
+        if (adminCode != AdminCode) return Unauthorized();
 
         var results = await _db.TestResults
             .Where(t => t.StudentId == id)
@@ -101,8 +106,18 @@ public class StudentsController : ControllerBase
 public class TestsController : ControllerBase
 {
     private readonly AppDbContext _db;
+    private readonly IConfiguration _config;
 
-    public TestsController(AppDbContext db) { _db = db; }
+    // Read admin code from environment variable, fall back to appsettings.json for local dev
+    private string AdminCode => Environment.GetEnvironmentVariable("ADMIN_CODE") 
+                                ?? _config["AdminCode"] 
+                                ?? "admin1234";
+
+    public TestsController(AppDbContext db, IConfiguration config) 
+    { 
+        _db = db; 
+        _config = config;
+    }
 
     // POST /api/tests/submit - student submits a completed test
     [HttpPost("submit")]
@@ -134,6 +149,7 @@ public class TestsController : ControllerBase
 
             result.Answers.Add(new TestAnswer {
                 QuestionId = answer.QuestionId,
+                KnownQuestionId = q.Id, // Link to original question
                 ChosenOption = answer.ChosenOption,
                 IsCorrect = isCorrect
             });
@@ -216,10 +232,9 @@ public class TestsController : ControllerBase
 
     // GET /api/tests/admin/all - admin: all test results with stats
     [HttpGet("admin/all")]
-    public async Task<IActionResult> GetAll([FromHeader(Name = "X-Admin-Code")] string? adminCode,
-        [FromServices] IConfiguration config)
+    public async Task<IActionResult> GetAllAdmin([FromHeader(Name = "X-Admin-Code")] string? adminCode)
     {
-        if (adminCode != config["AdminCode"]) return Unauthorized();
+        if (adminCode != AdminCode) return Unauthorized();
 
         var results = await _db.TestResults
             .Include(t => t.Student)

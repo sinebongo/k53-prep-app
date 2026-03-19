@@ -3,5 +3,12 @@ backend/bin/
 backend/obj/
 backend/*.db-shm
 backend/*.db-wal
+backend/appsettings.Production.json
 .DS_Store
 node_modules/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.env

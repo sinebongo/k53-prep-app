@@ -1,5 +1,8 @@
 // api.js — shared helper for all pages
-const API_BASE = 'http://localhost:5000/api';
+const IS_LOCAL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const API_BASE = IS_LOCAL 
+  ? 'http://localhost:5000/api' 
+  : 'https://YOUR-RAILWAY-APP-NAME.railway.app/api'; 
 
 function getAdminCode() {
   return sessionStorage.getItem('adminCode') || '';

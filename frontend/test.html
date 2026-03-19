@@ -8,17 +8,17 @@
 <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
 <script>
   tailwind.config = {
-    theme: { extend: { colors: { primary: '#144bb8' }, fontFamily: { sans: ['Lexend','sans-serif'] }, borderRadius: { custom: '8px' } } }
+    theme: { extend: { colors: { primary: '#c1272d' }, fontFamily: { sans: ['Lexend','sans-serif'] }, borderRadius: { custom: '8px' } } }
   }
 </script>
 <style>
   body { background:#f9fafb; font-family:'Lexend',sans-serif; }
-  .status-answered { background:#144bb8; color:white; }
+  .status-answered { background:#c1272d; color:white; }
   .status-skipped  { background:#f59e0b; color:white; }
-  .status-current  { border:2px solid #144bb8; font-weight:bold; background:#eff4ff; }
+  .status-current  { border:2px solid #c1272d; font-weight:bold; background:#eff4ff; }
   .status-unseen   { background:#e5e7eb; color:#6b7280; }
   .answer-opt { transition:border .15s,background .15s; }
-  .answer-opt.selected { border-color:#144bb8 !important; background:#eff4ff; }
+  .answer-opt.selected { border-color:#c1272d !important; background:#eff4ff; }
 </style>
 </head>
 <body class="min-h-screen text-slate-900">
@@ -74,7 +74,7 @@
           class="px-8 py-3 bg-amber-100 text-amber-700 rounded-custom font-semibold hover:bg-amber-200">
           Skip
         </button>
-        <button onclick="navigate(1)"
+        <button id="next-btn" onclick="navigate(1)"
           class="px-10 py-3 bg-primary text-white rounded-custom font-semibold hover:opacity-90 shadow-md flex items-center gap-2">
           Next →
         </button>
@@ -167,6 +167,12 @@ function renderQuestion(index) {
   currentIndex = index;
   visited.add(index);
   const q = questions[index];
+
+  // Swap Next button to Finish on last question
+  const nextBtn = document.getElementById('next-btn');
+  const isLast = index === questions.length - 1;
+  nextBtn.textContent = isLast ? '✓ Finish & Submit' : 'Next →';
+  nextBtn.onclick = isLast ? finishTest : () => navigate(1);
 
   document.getElementById('q-counter').textContent = `Question ${index+1} of ${questions.length}`;
   document.getElementById('q-category').textContent = q.category === 'Rules' ? 'Rules of the Road' : q.category === 'Signs' ? 'Road Signs' : 'Vehicle Controls';
