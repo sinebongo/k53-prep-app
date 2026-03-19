@@ -229,7 +229,7 @@
   </div>
 </div>
 
-<script src="js/api.js"></script>
+<script src="assets/js/api.js"></script>
 <script>
 requireAdmin();
 
@@ -314,7 +314,8 @@ function openModal(id) {
   document.getElementById('f-explanation').value = q.explanation || '';
   // Show existing image in drop zone
   if (q.imageUrl) {
-    showImagePreview(q.imageUrl);
+    const fullUrl = q.imageUrl.startsWith('data:') ? q.imageUrl : 'assets/' + q.imageUrl;
+    showImagePreview(fullUrl);
     document.getElementById('img-url-input').value = q.imageUrl.startsWith('data:') ? '' : q.imageUrl;
   } else {
     resetDropZone();
