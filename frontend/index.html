@@ -12,12 +12,28 @@
   }
 </script>
 <style>
-  body { background:#f9fafb; }
-  .action-card { transition: transform .2s, box-shadow .2s; }
-  .action-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0,0,0,.1); }
-  #admin-form { display:none; }
+  body { 
+    background-image: url('assets/img/landing-bg.png'); 
+    background-size: cover; 
+    background-position: center; 
+    background-attachment: fixed;
+    position: relative;
+    min-height: 100vh;
+  }
+  body::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(8px);
+    z-index: -1;
+  }
+  .action-card { transition: transform .2s, box-shadow .2s; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(4px); }
+  .action-card:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); }
+  #admin-form { display:none; background: rgba(239, 246, 255, 0.9); backdrop-filter: blur(4px); }
   #admin-form.active { display:block; }
   #error-msg { display:none; }
+  section { background: rgba(255, 255, 255, 0.9) !important; backdrop-filter: blur(4px); }
 </style>
 </head>
 <body class="font-sans antialiased min-h-screen flex flex-col">
