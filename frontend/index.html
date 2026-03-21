@@ -39,19 +39,24 @@
     background-repeat: no-repeat;
     opacity: 0.15;
     filter: blur(2px);
-    animation: glide 60s linear infinite;
+    animation: glide 60s linear infinite, spin 20s linear infinite;
   }
   
   .floating-sign {
     position: absolute;
-    opacity: 0.4;
+    opacity: 0.35;
     filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1));
     animation: float 15s ease-in-out infinite;
   }
 
   @keyframes glide {
-    from { transform: translateX(-20%) rotate(0deg); }
-    to { transform: translateX(250%) rotate(5deg); }
+    from { transform: translateX(-20%); }
+    to { transform: translateX(250%); }
+  }
+
+  @keyframes spin {
+    from { rotate: 0deg; }
+    to { rotate: 360deg; }
   }
 
   @keyframes float {
@@ -100,15 +105,15 @@
     'assets/img/pdf_img_p3_1.png'
   ];
   const layer = document.getElementById('bg-layer');
-  for (let i = 0; i < 12; i++) {
+  for (let i = 0; i < 24; i++) {
     const img = document.createElement('img');
     img.src = signs[Math.floor(Math.random() * signs.length)];
     img.className = 'floating-sign';
     img.style.top = Math.random() * 100 + '%';
     img.style.left = Math.random() * 100 + '%';
-    img.style.width = (Math.random() * 60 + 40) + 'px';
-    img.style.animationDelay = (Math.random() * -20) + 's';
-    img.style.animationDuration = (Math.random() * 10 + 10) + 's';
+    img.style.width = (Math.random() * 60 + 30) + 'px';
+    img.style.animationDelay = (Math.random() * -30) + 's';
+    img.style.animationDuration = (Math.random() * 15 + 10) + 's';
     layer.appendChild(img);
   }
 </script>
