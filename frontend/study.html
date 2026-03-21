@@ -12,12 +12,13 @@
   }
 </script>
 <style>
-  body { background:#f9fafb; overflow:hidden; }
-  .sidebar-h { height: calc(100vh - 64px); overflow-y: auto; }
-  .main-h   { height: calc(100vh - 64px); overflow-y: auto; }
-  .cat-btn { cursor:pointer; transition:background .15s; }
+  body { background:#f9fafb; min-height:100vh; }
+  .sidebar-h { height: 100vh; overflow-y: auto; position: sticky; top: 0; }
+  .cat-btn { cursor:pointer; transition:all .15s; border-left: 3px solid transparent; }
   .cat-btn:hover { background:#f8faff; }
-  .cat-btn.active { background:#eff4ff; color:#c1272d; font-weight:600; }
+  .cat-btn.active { background:#f1f5f9; border-left-color:#c1272d; color:#c1272d; font-weight:600; }
+  
+  html { scroll-behavior: smooth; }
   
   /* Flashcard 3D Effects */
   .flashcard { perspective: 1000px; height: 500px; cursor:pointer; }
@@ -36,38 +37,48 @@
 </head>
 <body class="font-sans antialiased text-gray-900">
 
-<!-- Header -->
-<header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 sticky top-0 z-50">
-  <div class="flex items-center gap-3 cursor-pointer" onclick="showCategory('Welcome')">
-    <div class="bg-primary p-2 rounded-custom">
-      <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-          d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-      </svg>
-    </div>
-    <h1 class="text-xl font-bold tracking-tight text-slate-800">K53 Study Master</h1>
-  </div>
-  <div class="flex items-center gap-4">
-    <span id="progress-label" class="text-sm font-medium text-slate-500">Loading...</span>
-    <a href="index.html" class="text-sm text-gray-400 hover:text-primary transition-colors">← Back</a>
-  </div>
-</header>
-
+<!-- Sidebar -->
 <div class="flex">
-  <!-- Sidebar -->
-  <aside class="w-72 bg-white border-r border-slate-200 sidebar-h scrollbar shrink-0">
+  <aside class="w-64 sidebar-h bg-white border-r border-slate-200 shrink-0 hidden lg:block">
+    <div class="p-6 border-b border-slate-200">
+      <div class="flex items-center gap-3 cursor-pointer" onclick="window.scrollTo(0,0)">
+        <div class="bg-primary p-2 rounded-custom">
+          <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+          </svg>
+        </div>
+        <h1 class="text-xl font-bold tracking-tight text-slate-800">K53 Study Master</h1>
+      </div>
+    </div>
+    
     <nav class="p-4 space-y-6">
       <div>
-        <h2 class="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Categories</h2>
+        <h2 class="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Navigation</h2>
         <div id="category-nav" class="space-y-1"></div>
       </div>
     </nav>
   </aside>
 
-  <!-- Main content -->
-  <main class="flex-1 main-h scrollbar">
-    <div id="loading" class="flex items-center justify-center h-64 text-gray-400">Loading questions...</div>
-    <div id="questions-container" class="p-8 space-y-8 hidden"></div>
+  <!-- Main Content -->
+  <main class="flex-grow min-h-screen">
+    <!-- Header/Desktop Subnav -->
+    <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 sticky top-0 z-50">
+      <div class="flex items-center gap-2">
+        <span id="active-cat-label" class="text-xs font-bold text-primary uppercase tracking-widest">Study Hub Home</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <a href="index.html" class="text-sm font-medium text-gray-500 hover:text-primary transition-colors flex items-center gap-1">
+          ← Back
+        </a>
+      </div>
+    </header>
+
+    <!-- Continuous Scroll Sections -->
+    <div id="sections-wrapper" class="p-6 md:p-10 space-y-24">
+      <div id="loading" class="text-center py-20 text-gray-400 font-medium">Loading Study Guide...</div>
+      <!-- All sections will be injected here -->
+    </div>
   </main>
 </div>
 
@@ -77,6 +88,7 @@ const student = requireStudent();
 if (!student) throw new Error('Not authenticated');
 
 let allQuestions = [];
+const cardIndices = { Rules: 0, Signs: 0, Controls: 0, Mix: 0 };
 const categories = [
   { key: 'Welcome',  label: 'Study Hub Home',    icon: '🏠' },
   { key: 'Rules',    label: 'Rules of the Road',  icon: '📋' },
@@ -90,16 +102,16 @@ async function init() {
   try {
     allQuestions = await apiFetch('/questions');
     renderNav();
+    renderAllSections();
     
-    // Check for category in URL
+    // Smooth scroll based on URL param
     const urlParams = new URLSearchParams(window.location.search);
     const catParam = urlParams.get('category');
-    
-    if (catParam && categories.some(c => c.key === catParam)) {
-      showCategory(catParam);
-    } else {
-      showCategory('Welcome');
+    if (catParam) {
+      setTimeout(() => scrollToSection(catParam), 500);
     }
+    
+    startObserving();
   } catch (e) {
     document.getElementById('loading').textContent = 'Failed to load: ' + e.message;
   }
@@ -107,221 +119,207 @@ async function init() {
 
 function renderNav() {
   const nav = document.getElementById('category-nav');
-  nav.innerHTML = categories.map(c => {
-    const count = allQuestions.filter(q => q.category === c.key).length;
-    const badge = c.key === 'Handbook' ? '' : `<span class="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">${count}</span>`;
-    return `<button onclick="showCategory('${c.key}')" id="cat-${c.key}"
-      class="cat-btn w-full flex items-center justify-between px-3 py-2 rounded-custom text-slate-700 text-sm">
+  nav.innerHTML = categories.map(c => `
+    <div id="cat-${c.key}" onclick="scrollToSection('${c.key}')" 
+      class="cat-btn flex items-center justify-between px-3 py-2 rounded-lg text-slate-600 text-sm">
       <div class="flex items-center gap-3">
         <span>${c.icon}</span>
         <span>${c.label}</span>
       </div>
-      ${badge}
-    </button>`;
-  }).join('');
+    </div>
+  `).join('');
 }
 
-function showCategory(cat) {
-  activeCategory = cat;
+function scrollToSection(key) {
+  const el = document.getElementById(`section-${key}`);
+  if (el) {
+    const headerOffset = 80;
+    const elementPosition = el.getBoundingClientRect().top;
+    const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
 
-  // Update nav highlight
+    window.scrollTo({
+      top: offsetPosition,
+      behavior: 'smooth'
+    });
+    
+    updateActiveNav(key);
+  }
+}
+
+function updateActiveNav(key) {
+  document.getElementById('active-cat-label').textContent = categories.find(c => c.key === key)?.label || 'Study Hub';
   categories.forEach(c => {
-    document.getElementById(`cat-${c.key}`)?.classList.toggle('active', c.key === cat);
+    document.getElementById(`cat-${c.key}`)?.classList.toggle('active', c.key === key);
+  });
+}
+
+function renderAllSections() {
+  const wrapper = document.getElementById('sections-wrapper');
+  document.getElementById('loading').classList.add('hidden');
+  
+  let html = '';
+  
+  // 1. Welcome Section
+  html += `
+    <section id="section-Welcome" class="scroll-mt-24">
+      <div class="max-w-4xl mx-auto py-12 px-2">
+        <div class="text-center mb-16">
+          <div class="inline-block p-4 bg-primary/10 rounded-full mb-6 text-4xl">🎓</div>
+          <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight mb-4">Welcome to Your Study Hub</h1>
+          <p class="text-lg text-slate-500 max-w-2xl mx-auto leading-relaxed">Master your K53 Learner's License with our interactive tools designed for focused learning and effective retention.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div class="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
+            <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center text-2xl mb-6">🎴</div>
+            <h2 class="text-xl font-bold text-slate-900 mb-3 text-left">Interactive Flashcards</h2>
+            <p class="text-slate-600 mb-4 text-sm leading-relaxed text-left">Scroll down to study by category or use the sidebar to jump straight to a section. Tap any card to flip it!</p>
+          </div>
+          <div class="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
+            <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center text-2xl mb-6">📖</div>
+            <h2 class="text-xl font-bold text-slate-900 mb-3 text-left">Study Book</h2>
+            <p class="text-slate-600 mb-4 text-sm leading-relaxed text-left">The optimized K53 Handbook is at the bottom of this page. Use it for deep theoretical learning.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  `;
+
+  // 2. Flashcard Sections
+  const flashcardCats = ['Rules', 'Signs', 'Controls', 'Mix'];
+  flashcardCats.forEach(cat => {
+    html += `
+      <section id="section-${cat}" class="scroll-mt-24 border-t border-slate-100 pt-16">
+        <div class="max-w-3xl mx-auto px-2">
+          <div class="mb-10 text-center">
+            <h2 class="text-3xl font-black text-slate-900 mb-2">${cat === 'Mix' ? 'Randomized Study Mix' : cat === 'Rules' ? 'Rules of the Road' : cat === 'Signs' ? 'Road Signs' : 'Vehicle Controls'}</h2>
+            <p class="text-slate-400 text-sm">${cat === 'Mix' ? 'All 156 questions shuffled.' : 'Tap and flip to master the ' + cat + ' section.'}</p>
+          </div>
+          <div id="container-${cat}"></div>
+        </div>
+      </section>
+    `;
   });
 
-  const container = document.getElementById('questions-container');
-  const loading = document.getElementById('loading');
-
-  loading.classList.add('hidden');
-  container.classList.remove('hidden');
-
-  if (cat === 'Welcome') {
-    renderWelcome();
-    return;
-  }
-
-  if (cat === 'Handbook') {
-    document.getElementById('progress-label').textContent = `Complete K53 Book`;
-    container.innerHTML = `
-      <div class="bg-white rounded-custom border border-gray-100 shadow-sm h-[80vh] overflow-hidden">
-        <iframe src="assets/docs/iDriving-School-K53_optimized.pdf#page=2" class="w-full h-full border-0"></iframe>
-      </div>
-    `;
-    return;
-  }
-
-  currentCardIndex = 0; // Reset index when switching categories
-  renderCards();
-}
-
-function renderWelcome() {
-  const container = document.getElementById('questions-container');
-  document.getElementById('progress-label').textContent = `Study Guide Welcome`;
-  
-  container.innerHTML = `
-    <div class="max-w-4xl mx-auto py-12 px-6">
-      <div class="text-center mb-16">
-        <div class="inline-block p-4 bg-primary/10 rounded-full mb-6">
-          <span class="text-4xl text-primary">🎓</span>
+  // 3. Book Section
+  html += `
+    <section id="section-Handbook" class="scroll-mt-24 border-t border-slate-100 pt-16">
+      <div class="max-w-5xl mx-auto px-2 pb-20">
+        <div class="mb-10 text-center">
+          <div class="inline-block p-4 bg-blue-100 text-blue-600 rounded-full mb-6 text-3xl">📖</div>
+          <h2 class="text-3xl font-black text-slate-900 mb-2">Complete K53 Book</h2>
+          <p class="text-slate-400 text-sm leading-relaxed max-w-lg mx-auto">Official study material optimized for this platform. Ready to read starting from the Table of Contents.</p>
         </div>
-        <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight mb-4">Welcome to Your Study Hub</h1>
-        <p class="text-lg text-slate-500 max-w-2xl mx-auto">Master your K53 Learner's License with our interactive tools designed for focused learning and effective retention.</p>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
-        <!-- Flashcards feature -->
-        <div class="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
-          <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center text-2xl mb-6">🎴</div>
-          <h2 class="text-xl font-bold text-slate-900 mb-3">Interactive Flashcards</h2>
-          <p class="text-slate-600 mb-4 text-sm leading-relaxed">
-            Our 156-question bank is broken down into Rules, Signs, and Controls. Use these cards to test your knowledge quickly.
-          </p>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-            <button onclick="showCategory('Rules')" class="py-2 bg-amber-50 text-amber-700 text-xs font-bold rounded-lg hover:bg-amber-100 transition-colors">🚦 Rules</button>
-            <button onclick="showCategory('Signs')" class="py-2 bg-amber-50 text-amber-700 text-xs font-bold rounded-lg hover:bg-amber-100 transition-colors">🚥 Signs</button>
-            <button onclick="showCategory('Controls')" class="py-2 bg-amber-50 text-amber-700 text-xs font-bold rounded-lg hover:bg-amber-100 transition-colors">🚗 Controls</button>
-            <button onclick="showCategory('Mix')" class="py-2 bg-primary text-white text-xs font-bold rounded-lg shadow-sm hover:opacity-90 transition-opacity">🔀 Mix All</button>
-          </div>
-          <p class="text-[10px] text-slate-400 italic">Pro tip: Use "Mix All" for final exam prep.</p>
-        </div>
-
-        <!-- PDF feature -->
-        <div class="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
-          <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center text-2xl mb-6">📖</div>
-          <h2 class="text-xl font-bold text-slate-900 mb-3">Complete K53 Book</h2>
-          <p class="text-slate-600 mb-4 text-sm leading-relaxed">
-            Access the official K53 study material directly on this platform. We've optimized the book to skip straight to the content, starting from the table of contents on page 2.
-          </p>
-          <ul class="space-y-2 mb-6">
-            <li class="flex items-center text-xs text-slate-500"><span class="text-blue-500 mr-2">✓</span> Theoretical foundation for the practice tests</li>
-            <li class="flex items-center text-xs text-slate-500"><span class="text-blue-500 mr-2">✓</span> Searchable PDF content for quick lookups</li>
-          </ul>
-          <button onclick="showCategory('Handbook')" class="w-full py-2.5 bg-blue-50 text-blue-700 font-bold rounded-xl hover:bg-blue-100 transition-colors">View Handbook →</button>
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-xl h-[80vh] overflow-hidden">
+          <iframe src="assets/docs/iDriving-School-K53_optimized.pdf#page=2" class="w-full h-full border-0"></iframe>
         </div>
       </div>
-
-      <div class="bg-slate-900 rounded-3xl p-10 text-white relative overflow-hidden">
-        <div class="relative z-10">
-          <h3 class="text-2xl font-bold mb-4">How to learn best on this platform</h3>
-          <p class="text-slate-400 mb-8 max-w-xl">Follow these three simple steps to ensure you're fully ready for your Learner's License test.</p>
-          
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            <div class="space-y-2">
-              <div class="text-2xl font-black text-primary/40">01</div>
-              <p class="text-sm font-bold">Read & Understand</p>
-              <p class="text-xs text-slate-500">Go through the K53 Book to build a strong theoretical base.</p>
-            </div>
-            <div class="space-y-2">
-              <div class="text-2xl font-black text-primary/40">02</div>
-              <p class="text-sm font-bold">Use Flashcards</p>
-              <p class="text-xs text-slate-500">Practice with memory cards twice a day until they become second nature.</p>
-            </div>
-            <div class="space-y-2">
-              <div class="text-2xl font-black text-primary/40">03</div>
-              <p class="text-sm font-bold">Take Practice Tests</p>
-              <p class="text-xs text-slate-500">Once you feel ready, take the timed Practice Test to simulate the exam.</p>
-            </div>
-          </div>
-        </div>
-        <div class="absolute top-0 right-0 p-8 text-primary opacity-10">
-           <svg class="w-32 h-32" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
-        </div>
-      </div>
-    </div>
+    </section>
   `;
+
+  wrapper.innerHTML = html;
+  
+  // Initial card render for all
+  flashcardCats.forEach(cat => renderSectionCard(cat));
 }
 
-let currentCardIndex = 0;
-
-function renderCards() {
-  const container = document.getElementById('questions-container');
+function renderSectionCard(cat) {
+  const container = document.getElementById(`container-${cat}`);
   let questions = [];
   
-  if (activeCategory === 'Mix') {
-    questions = [...allQuestions].sort(() => Math.random() - 0.5);
-    document.getElementById('progress-label').textContent = `Randomized Mix (All Questions)`;
+  if (cat === 'Mix') {
+    if (!window.mixQuestions) window.mixQuestions = [...allQuestions].sort(() => Math.random() - 0.5);
+    questions = window.mixQuestions;
   } else {
-    questions = allQuestions.filter(q => q.category === activeCategory);
-    document.getElementById('progress-label').textContent = `Card ${currentCardIndex + 1} of ${questions.length}`;
+    questions = allQuestions.filter(q => q.category === cat);
   }
-  
-  if (currentCardIndex >= questions.length) currentCardIndex = 0;
-  if (currentCardIndex < 0) currentCardIndex = questions.length - 1;
 
-  const q = questions[currentCardIndex];
+  const idx = cardIndices[cat];
+  const q = questions[idx];
+  
+  if (!q) {
+    container.innerHTML = `<p class="text-center text-gray-400">No questions found.</p>`;
+    return;
+  }
 
   container.innerHTML = `
-    <div class="max-w-2xl mx-auto space-y-6">
-      <div class="flashcard group" onclick="this.classList.toggle('flipped')">
+    <div class="max-w-2xl mx-auto">
+      <div class="flashcard group mb-6" onclick="this.classList.toggle('flipped')">
         <div class="flashcard-inner">
-          <!-- Front -->
           <div class="flashcard-front">
             <div class="flex items-center justify-between mb-4">
-              <span class="text-xs font-semibold text-primary uppercase tracking-wider">${q.subCategory}</span>
-              <span class="text-xs text-gray-400">Card ${currentCardIndex + 1}</span>
+              <span class="text-xs font-bold text-primary uppercase tracking-widest">${q.subCategory}</span>
+              <span class="text-xs font-medium text-slate-400">Card ${idx + 1} of ${questions.length}</span>
             </div>
-            
-            ${q.imageUrl ? `<div class="mb-4 flex justify-center bg-gray-50 p-4 rounded-custom border border-dashed border-gray-200">
-              <img src="${q.imageUrl.startsWith('http') ? q.imageUrl : 'assets/' + q.imageUrl}" alt="Road sign" class="max-h-32 object-contain"/>
+            ${q.imageUrl ? `<div class="mb-6 flex justify-center bg-slate-50 p-4 rounded-xl border border-slate-100">
+              <img src="${q.imageUrl.startsWith('http') ? q.imageUrl : 'assets/' + q.imageUrl}" class="max-h-32 object-contain" alt="Sign"/>
             </div>` : ''}
-            
-            <h2 class="text-lg font-bold mb-4">${q.text}</h2>
-            
-            <div class="space-y-2 mt-auto">
+            <h3 class="text-xl font-bold text-slate-800 leading-tight mb-6">${q.text}</h3>
+            <div class="space-y-3 mt-auto">
               ${['A','B','C'].map(opt => `
-                <div class="flex items-center p-3 border border-gray-100 rounded-lg bg-gray-50 text-sm">
-                  <span class="font-bold text-primary mr-3">${opt}.</span>
-                  <span class="text-gray-700">${q['option'+opt]}</span>
+                <div class="flex items-center p-3.5 border border-slate-100 rounded-xl bg-slate-50/50 text-sm">
+                  <span class="w-7 h-7 flex items-center justify-center bg-white border border-slate-200 rounded-lg font-bold text-primary mr-3 shrink-0">${opt}</span>
+                  <span class="text-slate-600">${q['option'+opt]}</span>
                 </div>
               `).join('')}
             </div>
-            
-            <p class="text-center text-[10px] text-gray-400 mt-4 uppercase font-bold tracking-widest">Tap to reveal answer</p>
+            <div class="text-center mt-6">
+              <span class="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Tap to flip card</span>
+            </div>
           </div>
-          
-          <!-- Back -->
           <div class="flashcard-back">
-            <div class="text-center mb-6">
-              <div class="inline-block px-4 py-1.5 bg-green-100 text-green-700 rounded-full text-xs font-bold uppercase tracking-widest mb-4">
-                Correct Answer
+            <div class="text-center">
+              <div class="inline-block px-4 py-1.5 bg-green-100 text-green-700 rounded-full text-[10px] font-black uppercase tracking-widest mb-6 border border-green-200">Correct Answer</div>
+              <h4 class="text-sm font-bold text-slate-400 uppercase mb-2">Option ${q.correctOption} is correct</h4>
+              <p class="text-lg font-extrabold text-slate-900 leading-tight mb-8">${q['option'+q.correctOption]}</p>
+              
+              <div class="p-5 bg-white border border-slate-100 rounded-2xl text-left shadow-sm">
+                <span class="text-[10px] font-bold text-primary uppercase tracking-widest mb-2 block">Why is this correct?</span>
+                <p class="text-sm text-slate-600 leading-relaxed">${q.explanation || 'Study this concept in the K53 Handbook for more details.'}</p>
               </div>
-              <h3 class="text-2xl font-black text-slate-900 mb-2">Option ${q.correctOption}</h3>
-              <p class="text-lg text-slate-700 font-medium border-t border-slate-200 pt-4 mt-2">
-                ${q['option'+q.correctOption]}
-              </p>
             </div>
-            
-            <div class="mt-auto p-4 bg-white border border-slate-200 rounded-xl">
-              <p class="text-xs font-bold text-primary uppercase mb-2">Explanation</p>
-              <p class="text-sm text-slate-600 leading-relaxed">${q.explanation || 'No explanation provided.'}</p>
+            <div class="text-center mt-auto pt-6">
+              <span class="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Tap to see question</span>
             </div>
-            
-            <p class="text-center text-[10px] text-gray-400 mt-6 uppercase font-bold tracking-widest">Tap to see question</p>
           </div>
         </div>
       </div>
-
-      <!-- Navigation buttons -->
-      <div class="flex items-center justify-between pt-4">
-        <button onclick="prevCard()" class="px-6 py-3 bg-white border border-gray-200 rounded-custom font-semibold text-gray-600 hover:bg-gray-50 flex items-center gap-2">
-          ← Previous
-        </button>
-        <button onclick="nextCard()" class="px-10 py-3 bg-primary text-white rounded-custom font-semibold hover:opacity-90 shadow-md flex items-center gap-2">
-          Next Card →
-        </button>
+      <div class="flex items-center justify-between gap-4">
+        <button onclick="changeCard('${cat}', -1)" class="px-6 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors shadow-sm shrink-0">← Prev</button>
+        <div class="flex-grow text-center">
+           <div class="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+             <div class="h-full bg-primary" style="width: ${((idx + 1) / questions.length) * 100}%"></div>
+           </div>
+           <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2 block">${idx + 1} of ${questions.length} Questions</span>
+        </div>
+        <button onclick="changeCard('${cat}', 1)" class="px-6 py-3 bg-primary text-white rounded-xl text-sm font-bold hover:opacity-90 transition-opacity shadow-lg shadow-primary/20 shrink-0">Next →</button>
       </div>
     </div>
   `;
 }
 
-function nextCard() {
-  currentCardIndex++;
-  renderCards();
+function changeCard(cat, dir) {
+  const questions = cat === 'Mix' ? window.mixQuestions : allQuestions.filter(q => q.category === cat);
+  cardIndices[cat] += dir;
+  if (cardIndices[cat] < 0) cardIndices[cat] = questions.length - 1;
+  if (cardIndices[cat] >= questions.length) cardIndices[cat] = 0;
+  renderSectionCard(cat);
 }
 
-function prevCard() {
-  currentCardIndex--;
-  renderCards();
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const key = entry.target.id.replace('section-', '');
+      updateActiveNav(key);
+    }
+  });
+}, { threshold: 0.2, rootMargin: '-100px 0px -50% 0px' });
+
+function startObserving() {
+  categories.forEach(c => {
+    const el = document.getElementById(`section-${c.key}`);
+    if (el) observer.observe(el);
+  });
 }
 
 init();
