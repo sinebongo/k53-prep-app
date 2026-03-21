@@ -78,9 +78,11 @@ if (!student) throw new Error('Not authenticated');
 
 let allQuestions = [];
 const categories = [
+  { key: 'Welcome',  label: 'Study Hub Home',    icon: '🏠' },
   { key: 'Rules',    label: 'Rules of the Road',  icon: '📋' },
   { key: 'Signs',    label: 'Road Signs',          icon: '🚦' },
   { key: 'Controls', label: 'Vehicle Controls',    icon: '🚗' },
+  { key: 'Mix',      label: 'Randomized All',      icon: '🔀' },
   { key: 'Handbook', label: 'Complete K53 Book', icon: '📖' },
 ];
 
@@ -172,13 +174,15 @@ function renderWelcome() {
           <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center text-2xl mb-6">🎴</div>
           <h2 class="text-xl font-bold text-slate-900 mb-3">Interactive Flashcards</h2>
           <p class="text-slate-600 mb-4 text-sm leading-relaxed">
-            Our 156-question bank is broken down into Rules, Signs, and Controls. Use these cards to test your knowledge quickly. Tap to reveal the correct answer and a detailed explanation.
+            Our 156-question bank is broken down into Rules, Signs, and Controls. Use these cards to test your knowledge quickly.
           </p>
-          <ul class="space-y-2 mb-6">
-            <li class="flex items-center text-xs text-slate-500"><span class="text-amber-500 mr-2">✓</span> Active Recall: Test yourself before seeing the answer</li>
-            <li class="flex items-center text-xs text-slate-500"><span class="text-amber-500 mr-2">✓</span> One-at-a-time focus for better concentration</li>
-          </ul>
-          <button onclick="showCategory('Rules')" class="w-full py-2.5 bg-amber-50 text-amber-700 font-bold rounded-xl hover:bg-amber-100 transition-colors">Start Reviewing →</button>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+            <button onclick="showCategory('Rules')" class="py-2 bg-amber-50 text-amber-700 text-xs font-bold rounded-lg hover:bg-amber-100 transition-colors">🚦 Rules</button>
+            <button onclick="showCategory('Signs')" class="py-2 bg-amber-50 text-amber-700 text-xs font-bold rounded-lg hover:bg-amber-100 transition-colors">🚥 Signs</button>
+            <button onclick="showCategory('Controls')" class="py-2 bg-amber-50 text-amber-700 text-xs font-bold rounded-lg hover:bg-amber-100 transition-colors">🚗 Controls</button>
+            <button onclick="showCategory('Mix')" class="py-2 bg-primary text-white text-xs font-bold rounded-lg shadow-sm hover:opacity-90 transition-opacity">🔀 Mix All</button>
+          </div>
+          <p class="text-[10px] text-slate-400 italic">Pro tip: Use "Mix All" for final exam prep.</p>
         </div>
 
         <!-- PDF feature -->
@@ -231,14 +235,20 @@ let currentCardIndex = 0;
 
 function renderCards() {
   const container = document.getElementById('questions-container');
-  const questions = allQuestions.filter(q => q.category === activeCategory);
+  let questions = [];
+  
+  if (activeCategory === 'Mix') {
+    questions = [...allQuestions].sort(() => Math.random() - 0.5);
+    document.getElementById('progress-label').textContent = `Randomized Mix (All Questions)`;
+  } else {
+    questions = allQuestions.filter(q => q.category === activeCategory);
+    document.getElementById('progress-label').textContent = `Card ${currentCardIndex + 1} of ${questions.length}`;
+  }
   
   if (currentCardIndex >= questions.length) currentCardIndex = 0;
   if (currentCardIndex < 0) currentCardIndex = questions.length - 1;
 
   const q = questions[currentCardIndex];
-  
-  document.getElementById('progress-label').textContent = `Card ${currentCardIndex + 1} of ${questions.length}`;
 
   container.innerHTML = `
     <div class="max-w-2xl mx-auto space-y-6">
