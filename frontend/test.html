@@ -188,7 +188,7 @@ function renderQuestion(index) {
 
   // Render options
   const opts = document.getElementById('answer-options');
-  opts.innerHTML = ['A','B','C','D'].map(opt => `
+  opts.innerHTML = ['A','B','C'].map(opt => `
     <label class="answer-opt flex items-center p-4 border-2 border-gray-100 rounded-custom cursor-pointer hover:border-blue-200"
       id="opt-${opt}">
       <input type="radio" name="k53-opt" value="${opt}" class="w-5 h-5 text-primary border-gray-300"
@@ -209,7 +209,7 @@ function selectAnswer(opt) {
   const q = questions[currentIndex];
   answers[q.id] = opt;
   // Highlight selected
-  ['A','B','C','D'].forEach(o => {
+  ['A','B','C'].forEach(o => {
     document.getElementById(`opt-${o}`)?.classList.toggle('selected', o === opt);
   });
   updateNavGrid();

@@ -153,7 +153,7 @@ function showCategory(cat) {
       </div>` : ''}
       <h2 class="text-lg font-semibold mb-6">${q.text}</h2>
       <div class="space-y-3" id="opts-${q.id}">
-        ${['A','B','C','D'].map(opt => `
+        ${['A','B','C'].map(opt => `
           <label class="answer-option flex items-center p-4 border-2 border-gray-100 rounded-custom cursor-pointer group"
             id="opt-${q.id}-${opt}" onclick="selectAnswer(${q.id}, '${opt}', this)">
             <input type="radio" name="q-${q.id}" value="${opt}" class="w-5 h-5 text-primary border-gray-300 focus:ring-primary"/>
@@ -179,7 +179,7 @@ async function selectAnswer(questionId, chosen, labelEl) {
     const correct = result.correctOption;
 
     // Colour feedback
-    ['A','B','C','D'].forEach(opt => {
+    ['A','B','C'].forEach(opt => {
       const el = document.getElementById(`opt-${questionId}-${opt}`);
       if (!el) return;
       if (opt === correct) { el.classList.add('correct'); }
