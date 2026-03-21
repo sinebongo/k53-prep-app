@@ -88,8 +88,8 @@ try
         try 
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            Console.WriteLine("Initializing database...");
-            db.Database.EnsureCreated();
+            Console.WriteLine("Initializing database and applying migrations...");
+            db.Database.Migrate();
             SeedData.Seed(db);
             Console.WriteLine("Database initialized and seeded.");
         }
