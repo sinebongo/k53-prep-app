@@ -183,6 +183,7 @@ public class TestsController : ControllerBase
             CorrectOption = questions[a.QuestionId].CorrectOption,
             QuestionText = questions[a.QuestionId].Text,
             Category = questions[a.QuestionId].Category,
+            ImageUrl = questions[a.QuestionId].ImageUrl,
             Explanation = questions[a.QuestionId].Explanation
         });
 
@@ -224,6 +225,7 @@ public class TestsController : ControllerBase
                 CorrectOption = a.Question.CorrectOption,
                 QuestionText = a.Question.Text,
                 Category = a.Question.Category,
+                ImageUrl = a.Question.ImageUrl,
                 Explanation = a.Question.Explanation
             })
         });
