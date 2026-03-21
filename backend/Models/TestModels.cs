@@ -7,6 +7,11 @@ public class Student
     public string Phone { get; set; } = string.Empty;
     public DateTime FirstSeen { get; set; } = DateTime.UtcNow;
     public DateTime LastSeen { get; set; } = DateTime.UtcNow;
+
+    // Engagement Stats
+    public int FlippedCardsCount { get; set; }
+    public int TotalStudySeconds { get; set; }
+
     public ICollection<TestResult> TestResults { get; set; } = new List<TestResult>();
 }
 

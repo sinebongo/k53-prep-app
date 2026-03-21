@@ -267,7 +267,7 @@ function renderSectionCard(cat) {
 
   container.innerHTML = `
     <div class="max-w-2xl mx-auto">
-      <div class="flashcard group mb-6" onclick="this.classList.toggle('flipped')">
+      <div class="flashcard group mb-6" onclick="this.classList.toggle('flipped'); trackActivity('flip')">
         <div class="flashcard-inner">
           <div class="flashcard-front">
             <div class="flex items-center justify-between mb-4">
@@ -338,12 +338,29 @@ const observer = new IntersectionObserver((entries) => {
   });
 }, { threshold: 0.2, rootMargin: '-100px 0px -50% 0px' });
 
-function startObserving() {
-  categories.forEach(c => {
-    const el = document.getElementById(`section-${c.key}`);
-    if (el) observer.observe(el);
-  });
+let studyStartTime = Date.now();
+async function trackActivity(type, amount = 1) {
+    const studentId = sessionStorage.getItem('studentId');
+    if (!studentId) return;
+
+    const body = type === 'flip' 
+        ? { flippedIncrement: amount, studySecondsIncrement: 0 }
+        : { flippedIncrement: 0, studySecondsIncrement: amount };
+
+    try {
+        await apiFetch(`/students/${studentId}/activity`, {
+            method: 'POST',
+            body: JSON.stringify(body)
+        });
+    } catch (e) {
+        console.error('Failed to track activity:', e);
+    }
 }
+
+// Track study time every 30 seconds
+setInterval(() => {
+    trackActivity('time', 30);
+}, 30000);
 
 init();
 </script>

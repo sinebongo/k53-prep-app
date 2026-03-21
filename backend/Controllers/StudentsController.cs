@@ -61,6 +61,7 @@ public class StudentsController : ControllerBase
             .Select(s => new {
                 s.Id, s.Name, s.Phone,
                 s.FirstSeen, s.LastSeen,
+                s.FlippedCardsCount, s.TotalStudySeconds,
                 TestCount = s.TestResults.Count,
                 LastScore = s.TestResults
                     .OrderByDescending(t => t.TakenAt)
@@ -95,6 +96,24 @@ public class StudentsController : ControllerBase
             .ToListAsync();
 
         return Ok(results);
+    }
+
+    // POST /api/students/{id}/activity - increment engagement stats
+    [HttpPost("{id}/activity")]
+    public async Task<IActionResult> UpdateActivity(int id, [FromBody] ActivityUpdateDto dto)
+    {
+        var student = await _db.Students.FindAsync(id);
+        if (student == null) return NotFound();
+
+        if (dto.FlippedIncrement > 0)
+            student.FlippedCardsCount += dto.FlippedIncrement;
+        
+        if (dto.StudySecondsIncrement > 0)
+            student.TotalStudySeconds += dto.StudySecondsIncrement;
+
+        student.LastSeen = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+        return Ok(new { student.FlippedCardsCount, student.TotalStudySeconds });
     }
 }
 
@@ -258,5 +277,6 @@ public class TestsController : ControllerBase
 
 // DTOs
 public record IdentifyDto(string Name, string Phone);
+public record ActivityUpdateDto(int FlippedIncrement, int StudySecondsIncrement);
 public record TestSubmissionDto(int StudentId, int DurationSeconds, List<AnswerDto> Answers);
 public record AnswerDto(int QuestionId, string? ChosenOption);
