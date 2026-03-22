@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>K53 Admin Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com/3.4.1?plugins=forms"></script>
+<script>
+  tailwind.config = {
+    theme: { extend: { colors: { primary: '#c1272d' }, fontFamily: { sans: ['Lexend','sans-serif'] }, borderRadius: { custom: '8px' } } }
+  }
+</script>
+<style>
+  body {
+    background: linear-gradient(160deg, #f8fafc 0%, #fef2f2 100%);
+    min-height: 100vh;
+  }
+  .glass-card {
+    background: rgba(255, 255, 255, 0.82);
+    -webkit-backdrop-filter: blur(18px);
+    backdrop-filter: blur(18px);
+    border: 1px solid rgba(255, 255, 255, 0.45);
+  }
+</style>
+</head>
+<body class="font-sans antialiased">
+  <main class="min-h-screen flex items-center justify-center px-6 py-12">
+    <div class="w-full max-w-md space-y-6">
+      <div class="text-center">
+        <h1 class="text-2xl font-bold text-slate-900">Admin Access</h1>
+        <p class="text-sm text-slate-600 mt-2">Enter your admin code to continue.</p>
+      </div>
+
+      <section class="glass-card rounded-2xl shadow-lg p-6 space-y-4">
+        <label class="block text-xs font-bold text-primary uppercase tracking-wider mb-1" for="admin-code">Master Key / Admin Code</label>
+        <input id="admin-code" type="password" placeholder="Enter code"
+          class="block w-full px-4 py-3 rounded-xl border border-gray-300 shadow-sm text-sm focus:ring-primary focus:border-primary"/>
+
+        <button onclick="loginAdmin()"
+          class="w-full bg-primary text-white px-4 py-3 rounded-xl text-sm font-semibold hover:opacity-95 transition-opacity">
+          Login to Admin Dashboard
+        </button>
+
+        <p id="admin-error" class="text-red-500 text-xs hidden">Incorrect code. Try again.</p>
+      </section>
+
+      <p class="text-center">
+        <a href="index.html" class="text-sm text-gray-600 hover:text-primary transition-colors">Back to student home</a>
+      </p>
+    </div>
+  </main>
+
+  <script src="assets/js/api.js"></script>
+  <script>
+    async function loginAdmin() {
+      const code = document.getElementById('admin-code').value.trim();
+      const errEl = document.getElementById('admin-error');
+      errEl.classList.add('hidden');
+
+      if (!code) {
+        errEl.textContent = 'Please enter your admin code.';
+        errEl.classList.remove('hidden');
+        return;
+      }
+
+      try {
+        sessionStorage.setItem('adminCode', code);
+        await apiFetch('/students');
+        window.location.href = 'admin-dashboard.html';
+      } catch {
+        sessionStorage.removeItem('adminCode');
+        errEl.textContent = 'Incorrect code. Try again.';
+        errEl.classList.remove('hidden');
+      }
+    }
+
+    document.getElementById('admin-code').addEventListener('keydown', function (event) {
+      if (event.key === 'Enter') {
+        loginAdmin();
+      }
+    });
+  </script>
+</body>
+</html>

@@ -95,7 +95,30 @@ try
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"FATAL: Database initialization failed: {ex.Message}");
+            Console.WriteLine($"Database migration failed: {ex.Message}");
+
+            // Local recovery path: if migration history is out of sync on SQLite,
+            // recreate the database from the current model so dev startup can continue.
+            if (string.IsNullOrEmpty(databaseUrl))
+            {
+                try
+                {
+                    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                    Console.WriteLine("Attempting SQLite recovery with EnsureDeleted/EnsureCreated...");
+                    db.Database.EnsureDeleted();
+                    db.Database.EnsureCreated();
+                    SeedData.Seed(db);
+                    Console.WriteLine("SQLite recovery succeeded. Database recreated and seeded.");
+                }
+                catch (Exception recoveryEx)
+                {
+                    Console.WriteLine($"FATAL: SQLite recovery failed: {recoveryEx.Message}");
+                }
+            }
+            else
+            {
+                Console.WriteLine("FATAL: Database initialization failed in production mode.");
+            }
         }
     }
 
