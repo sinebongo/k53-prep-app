@@ -42,6 +42,7 @@
 
   .glass-effect {
     background: rgba(255, 255, 255, 0.55);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
     backdrop-filter: blur(24px) saturate(180%);
     border: 1px solid rgba(255, 255, 255, 0.3);
     box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
@@ -49,6 +50,7 @@
   .action-card { 
     transition: transform .3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow .3s; 
     background: rgba(255, 255, 255, 0.65); 
+    -webkit-backdrop-filter: blur(16px);
     backdrop-filter: blur(16px);
     border: 1px solid rgba(255, 255, 255, 0.4);
   }
@@ -56,8 +58,21 @@
   #error-msg { display:none; }
   section.ident-box { 
     background: rgba(255, 255, 255, 0.7) !important; 
+    -webkit-backdrop-filter: blur(16px);
     backdrop-filter: blur(16px);
     border: 1px solid rgba(255, 255, 255, 0.5);
+  }
+
+  @media (max-width: 640px) {
+    .floating-sign {
+      opacity: 0.2;
+      animation-duration: 20s !important;
+    }
+
+    .action-card {
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+    }
   }
 </style>
 </head>
@@ -88,7 +103,8 @@
     'assets/img/pdf_img_p6_1.png'
   ];
   const layer = document.getElementById('bg-layer');
-  for (let i = 0; i < 24; i++) {
+  const signCount = window.innerWidth < 640 ? 10 : 24;
+  for (let i = 0; i < signCount; i++) {
     const img = document.createElement('img');
     img.src = signs[Math.floor(Math.random() * signs.length)];
     img.className = 'floating-sign';
@@ -101,19 +117,19 @@
   }
 </script>
 
-<main class="flex-grow flex items-center justify-center p-6 -mt-12">
+<main class="flex-grow flex items-center justify-center px-4 py-6 sm:p-6 sm:-mt-6">
   <div class="w-full max-w-md space-y-8">
 
     <!-- Header -->
     <header class="text-center space-y-6">
       <div class="space-y-4">
-        <img src="assets/img/logo.png" alt="Godu Godu Logo" class="w-48 h-48 mx-auto drop-shadow-2xl hover:scale-105 transition-transform duration-300">
-        <p class="text-slate-900 font-bold drop-shadow-sm text-xl">Your journey to the road starts here</p>
+        <img src="assets/img/logo.png" alt="Godu Godu Logo" class="w-36 h-36 sm:w-48 sm:h-48 mx-auto drop-shadow-2xl hover:scale-105 transition-transform duration-300">
+        <p class="text-slate-900 font-bold drop-shadow-sm text-lg sm:text-xl">Your journey to the road starts here</p>
       </div>
     </header>
 
     <!-- Student Identification -->
-    <section class="ident-box p-6 rounded-2xl shadow-sm space-y-4">
+    <section class="ident-box p-5 sm:p-6 rounded-2xl shadow-sm space-y-4">
       <div class="flex items-center gap-3 mb-2">
         <div class="bg-primary/10 p-2 rounded-lg">
           <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -142,29 +158,29 @@
     <!-- Action cards -->
     <section class="grid grid-cols-1 gap-4">
       <button onclick="go('study')"
-        class="action-card flex items-center p-6 bg-white border border-gray-100 rounded-custom shadow-sm hover:border-primary group text-left w-full">
+        class="action-card flex flex-col sm:flex-row sm:items-center p-5 sm:p-6 bg-white border border-gray-100 rounded-custom shadow-sm hover:border-primary group text-left w-full">
         <div class="flex-shrink-0 p-3 bg-blue-50 text-primary rounded-custom group-hover:bg-primary group-hover:text-white transition-colors">
-          <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="h-7 w-7 sm:h-8 sm:w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
           </svg>
         </div>
-        <div class="ml-5">
-          <h2 class="text-xl font-bold text-gray-900">Study Mode</h2>
+        <div class="mt-3 sm:mt-0 sm:ml-5">
+          <h2 class="text-lg sm:text-xl font-bold text-gray-900">Study Mode</h2>
           <p class="text-gray-500 text-sm">Review rules and signs at your own pace.</p>
         </div>
       </button>
 
       <button onclick="go('test')"
-        class="action-card flex items-center p-6 bg-white border border-gray-100 rounded-custom shadow-sm hover:border-primary group text-left w-full">
+        class="action-card flex flex-col sm:flex-row sm:items-center p-5 sm:p-6 bg-white border border-gray-100 rounded-custom shadow-sm hover:border-primary group text-left w-full">
         <div class="flex-shrink-0 p-3 bg-blue-50 text-primary rounded-custom group-hover:bg-primary group-hover:text-white transition-colors">
-          <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="h-7 w-7 sm:h-8 sm:w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
         </div>
-        <div class="ml-5">
-          <h2 class="text-xl font-bold text-gray-900">Take Practice Test</h2>
+        <div class="mt-3 sm:mt-0 sm:ml-5">
+          <h2 class="text-lg sm:text-xl font-bold text-gray-900">Take Practice Test</h2>
           <p class="text-gray-500 text-sm">Challenge yourself with a timed 64-question mock exam.</p>
         </div>
       </button>

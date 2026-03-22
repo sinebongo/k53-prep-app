@@ -17,6 +17,37 @@
   .nav-link:hover { background:#f1f5ff; }
   .nav-link.active { background:#eff4ff; color:#c1272d; font-weight:600; }
   .stat-card { background:#fff; border:1px solid #e5e7eb; border-radius:8px; padding:1.25rem; }
+
+  @media (max-width: 1024px) {
+    body {
+      display: block;
+    }
+
+    aside {
+      position: static !important;
+      width: 100% !important;
+      height: auto !important;
+      border-right: none !important;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    aside nav {
+      display: flex;
+      gap: 0.5rem;
+      overflow-x: auto;
+      padding: 1rem;
+    }
+
+    aside nav a {
+      white-space: nowrap;
+      flex: 0 0 auto;
+    }
+
+    main {
+      margin-left: 0 !important;
+      padding: 1rem !important;
+    }
+  }
 </style>
 </head>
 <body class="flex min-h-screen">
@@ -70,7 +101,7 @@
 
 <!-- Main -->
 <main class="flex-1 ml-64 p-8">
-  <header class="mb-8 flex justify-between items-end">
+  <header class="mb-8 flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-end">
     <div>
       <h2 class="text-3xl font-bold text-gray-900">Dashboard Overview</h2>
       <p class="text-gray-500 mt-1">Manage questions and monitor student progress.</p>

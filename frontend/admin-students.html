@@ -18,6 +18,41 @@
   .nav-link.active { background:#eff4ff; color:#c1272d; font-weight:600; }
   .drawer { display:none; }
   .drawer.open { display:block; }
+
+  @media (max-width: 1024px) {
+    body {
+      display: block;
+    }
+
+    aside {
+      position: static !important;
+      width: 100% !important;
+      height: auto !important;
+      border-right: none !important;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    aside nav {
+      display: flex;
+      gap: 0.5rem;
+      overflow-x: auto;
+      padding: 1rem;
+    }
+
+    aside nav a {
+      white-space: nowrap;
+      flex: 0 0 auto;
+    }
+
+    main {
+      margin-left: 0 !important;
+    }
+
+    #history-drawer {
+      width: 100% !important;
+      max-width: 100%;
+    }
+  }
 </style>
 </head>
 <body class="flex min-h-screen">
@@ -56,7 +91,7 @@
 <main class="flex-1 ml-64">
 
   <!-- Top bar -->
-  <header class="h-16 border-b border-gray-200 bg-white flex items-center justify-between px-8 sticky top-0 z-10">
+  <header class="h-16 border-b border-gray-200 bg-white flex items-center justify-between px-4 sm:px-8 sticky top-0 z-10">
     <div class="flex items-center gap-4 flex-1">
       <div class="max-w-md w-full relative">
         <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -70,13 +105,13 @@
     <div class="text-sm text-gray-500" id="student-count"></div>
   </header>
 
-  <div class="p-8">
+  <div class="p-4 sm:p-8">
     <div class="flex items-center justify-between mb-6">
       <h2 class="text-2xl font-bold tracking-tight">Student Activity</h2>
     </div>
 
     <!-- Stats row -->
-    <div class="grid grid-cols-4 gap-4 mb-8">
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
       <div class="bg-white p-5 rounded-custom border border-gray-200 shadow-sm">
         <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold">Total Students</p>
         <p id="stat-total" class="text-3xl font-bold text-primary mt-1">—</p>
@@ -97,6 +132,7 @@
 
     <!-- Student table -->
     <div class="bg-white rounded-custom border border-gray-200 shadow-sm overflow-hidden">
+      <div class="overflow-x-auto">
       <table class="w-full text-sm">
         <thead class="bg-gray-50 border-b border-gray-200">
           <tr class="text-left text-xs uppercase tracking-wider text-gray-500">
@@ -112,6 +148,7 @@
         </thead>
         <tbody id="student-table" class="divide-y divide-gray-50"></tbody>
       </table>
+      </div>
       <p id="empty-msg" class="hidden text-center text-gray-400 py-10">No students found.</p>
     </div>
   </div>

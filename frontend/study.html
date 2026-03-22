@@ -17,6 +17,13 @@
   .cat-btn { cursor:pointer; transition:all .15s; border-left: 3px solid transparent; }
   .cat-btn:hover { background:#f8faff; }
   .cat-btn.active { background:#f1f5f9; border-left-color:#c1272d; color:#c1272d; font-weight:600; }
+  .cat-pill { white-space: nowrap; cursor: pointer; transition: all .15s; }
+  .cat-pill.active { background:#c1272d; color:#fff; border-color:#c1272d; }
+
+  #category-nav-mobile {
+    overflow-x: auto;
+  }
+  #category-nav-mobile::-webkit-scrollbar { display: none; }
   
   html { scroll-behavior: smooth; }
   
@@ -33,6 +40,20 @@
   
   .scrollbar::-webkit-scrollbar { width:4px; }
   .scrollbar::-webkit-scrollbar-thumb { background:#d1d5db; border-radius:2px; }
+
+  @media (max-width: 1024px) {
+    .flashcard { height: 460px; }
+  }
+
+  @media (max-width: 640px) {
+    .flashcard { height: 420px; }
+    .flashcard-front, .flashcard-back { padding: 1rem; }
+    .sidebar-h { height: auto; }
+  }
+
+  @media (max-width: 400px) {
+    .flashcard { height: 390px; }
+  }
 </style>
 </head>
 <body class="font-sans antialiased text-gray-900">
@@ -63,9 +84,9 @@
   <!-- Main Content -->
   <main class="flex-grow min-h-screen">
     <!-- Header/Desktop Subnav -->
-    <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 sticky top-0 z-50">
+    <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-6 sticky top-0 z-50">
       <div class="flex items-center gap-2">
-        <span id="active-cat-label" class="text-xs font-bold text-primary uppercase tracking-widest">Study Hub Home</span>
+        <span id="active-cat-label" class="text-[10px] sm:text-xs font-bold text-primary uppercase tracking-widest">Study Hub Home</span>
       </div>
       <div class="flex items-center gap-4">
         <a href="index.html" class="text-sm font-medium text-gray-500 hover:text-primary transition-colors flex items-center gap-1">
@@ -74,8 +95,12 @@
       </div>
     </header>
 
+    <div class="lg:hidden bg-white border-b border-slate-200 px-4 py-3 sticky top-16 z-40">
+      <div id="category-nav-mobile" class="flex gap-2 overflow-x-auto pb-1"></div>
+    </div>
+
     <!-- Continuous Scroll Sections -->
-    <div id="sections-wrapper" class="p-6 md:p-10 space-y-24">
+    <div id="sections-wrapper" class="p-4 sm:p-6 md:p-10 space-y-16 sm:space-y-24">
       <div id="loading" class="text-center py-20 text-gray-400 font-medium">Loading Study Guide...</div>
       <!-- All sections will be injected here -->
     </div>
@@ -142,6 +167,7 @@ async function init() {
 
 function renderNav() {
   const nav = document.getElementById('category-nav');
+  const navMobile = document.getElementById('category-nav-mobile');
   nav.innerHTML = categories.map(c => `
     <div id="cat-${c.key}" onclick="scrollToSection('${c.key}')" 
       class="cat-btn flex items-center justify-between px-3 py-2 rounded-lg text-slate-600 text-sm">
@@ -151,6 +177,15 @@ function renderNav() {
       </div>
     </div>
   `).join('');
+
+  if (navMobile) {
+    navMobile.innerHTML = categories.map(c => `
+      <button id="cat-mobile-${c.key}" onclick="scrollToSection('${c.key}')"
+        class="cat-pill px-3 py-2 rounded-full border border-slate-200 text-xs font-semibold text-slate-600 bg-white">
+        ${c.icon} ${c.label}
+      </button>
+    `).join('');
+  }
 }
 
 function scrollToSection(key) {
@@ -173,6 +208,7 @@ function updateActiveNav(key) {
   document.getElementById('active-cat-label').textContent = categories.find(c => c.key === key)?.label || 'Study Hub';
   categories.forEach(c => {
     document.getElementById(`cat-${c.key}`)?.classList.toggle('active', c.key === key);
+    document.getElementById(`cat-mobile-${c.key}`)?.classList.toggle('active', c.key === key);
   });
 }
 
@@ -185,21 +221,21 @@ function renderAllSections() {
   // 1. Welcome Section
   html += `
     <section id="section-Welcome" class="scroll-mt-24">
-      <div class="max-w-4xl mx-auto py-12 px-2">
-        <div class="text-center mb-16">
+      <div class="max-w-4xl mx-auto py-8 sm:py-12 px-2">
+        <div class="text-center mb-10 sm:mb-16">
           <div class="inline-block p-4 bg-primary/10 rounded-full mb-6 text-4xl">🎓</div>
-          <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight mb-4">Welcome to Your Study Hub</h1>
-          <p class="text-lg text-slate-500 max-w-2xl mx-auto leading-relaxed">Master your K53 Learner's License with our interactive tools designed for focused learning and effective retention.</p>
+          <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-4">Welcome to Your Study Hub</h1>
+          <p class="text-base sm:text-lg text-slate-500 max-w-2xl mx-auto leading-relaxed">Master your K53 Learner's License with our interactive tools designed for focused learning and effective retention.</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div class="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
-            <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center text-2xl mb-6">🎴</div>
+          <div class="bg-white p-5 sm:p-8 rounded-2xl border border-slate-100 shadow-sm">
+            <div class="w-10 h-10 sm:w-12 sm:h-12 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center text-xl sm:text-2xl mb-6">🎴</div>
             <h2 class="text-xl font-bold text-slate-900 mb-3 text-left">Interactive Flashcards</h2>
             <p class="text-slate-600 mb-4 text-sm leading-relaxed text-left">Scroll down to study by category or use the sidebar to jump straight to a section. Tap any card to flip it!</p>
           </div>
-          <div class="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
-            <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center text-2xl mb-6">📖</div>
+          <div class="bg-white p-5 sm:p-8 rounded-2xl border border-slate-100 shadow-sm">
+            <div class="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center text-xl sm:text-2xl mb-6">📖</div>
             <h2 class="text-xl font-bold text-slate-900 mb-3 text-left">Study Book</h2>
             <p class="text-slate-600 mb-4 text-sm leading-relaxed text-left">The optimized K53 Handbook is at the bottom of this page. Use it for deep theoretical learning.</p>
           </div>
@@ -212,10 +248,10 @@ function renderAllSections() {
   const flashcardCats = ['Mix', 'Rules', 'Signs', 'Controls'];
   flashcardCats.forEach(cat => {
     html += `
-      <section id="section-${cat}" class="scroll-mt-24 border-t border-slate-100 pt-16">
+      <section id="section-${cat}" class="scroll-mt-24 border-t border-slate-100 pt-12 sm:pt-16">
         <div class="max-w-3xl mx-auto px-2">
-          <div class="mb-10 text-center">
-            <h2 class="text-3xl font-black text-slate-900 mb-2">${cat === 'Mix' ? 'Ultimate Study Mix' : cat === 'Rules' ? 'Rules of the Road' : cat === 'Signs' ? 'Road Signs' : 'Vehicle Controls'}</h2>
+          <div class="mb-8 sm:mb-10 text-center">
+            <h2 class="text-2xl sm:text-3xl font-black text-slate-900 mb-2">${cat === 'Mix' ? 'Ultimate Study Mix' : cat === 'Rules' ? 'Rules of the Road' : cat === 'Signs' ? 'Road Signs' : 'Vehicle Controls'}</h2>
             <p class="text-slate-400 text-sm">${cat === 'Mix' ? 'All questions shuffled for a complete review.' : 'Tap and flip to master the ' + cat + ' section.'}</p>
           </div>
           <div id="container-${cat}"></div>
@@ -226,14 +262,14 @@ function renderAllSections() {
 
   // 3. Book Section
   html += `
-    <section id="section-Handbook" class="scroll-mt-24 border-t border-slate-100 pt-16">
+    <section id="section-Handbook" class="scroll-mt-24 border-t border-slate-100 pt-12 sm:pt-16">
       <div class="max-w-5xl mx-auto px-2 pb-20">
-        <div class="mb-10 text-center">
+        <div class="mb-8 sm:mb-10 text-center">
           <div class="inline-block p-4 bg-blue-100 text-blue-600 rounded-full mb-6 text-3xl">📖</div>
-          <h2 class="text-3xl font-black text-slate-900 mb-2">Complete K53 Book</h2>
+          <h2 class="text-2xl sm:text-3xl font-black text-slate-900 mb-2">Complete K53 Book</h2>
           <p class="text-slate-400 text-sm leading-relaxed max-w-lg mx-auto">Official study material optimized for this platform. Ready to read starting from the Table of Contents.</p>
         </div>
-        <div class="bg-white rounded-2xl border border-gray-100 shadow-xl h-[80vh] overflow-hidden">
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-xl h-[65vh] sm:h-[75vh] lg:h-[80vh] overflow-hidden">
           <iframe src="assets/docs/godu-godu-driving-school-k53.pdf" class="w-full h-full border-0"></iframe>
         </div>
       </div>
@@ -270,17 +306,17 @@ function renderSectionCard(cat) {
       <div class="flashcard group mb-6" onclick="this.classList.toggle('flipped'); trackActivity('flip')">
         <div class="flashcard-inner">
           <div class="flashcard-front">
-            <div class="flex items-center justify-between mb-4">
-              <span class="text-xs font-bold text-primary uppercase tracking-widest">${q.subCategory}</span>
-              <span class="text-xs font-medium text-slate-400">Card ${idx + 1} of ${questions.length}</span>
+            <div class="flex items-start justify-between gap-2 mb-4">
+              <span class="text-xs font-bold text-primary uppercase tracking-widest break-words max-w-[70%]">${q.subCategory}</span>
+              <span class="text-xs font-medium text-slate-400 shrink-0">Card ${idx + 1} of ${questions.length}</span>
             </div>
             ${q.imageUrl ? `<div class="mb-6 flex justify-center bg-slate-50 p-4 rounded-xl border border-slate-100">
-              <img src="${q.imageUrl.startsWith('http') ? q.imageUrl : 'assets/' + q.imageUrl}" class="max-h-32 object-contain" alt="Sign"/>
+              <img src="${q.imageUrl.startsWith('http') ? q.imageUrl : 'assets/' + q.imageUrl}" class="max-h-32 max-w-full object-contain" alt="Sign"/>
             </div>` : ''}
-            <h3 class="text-xl font-bold text-slate-800 leading-tight mb-6">${q.text}</h3>
+            <h3 class="text-lg sm:text-xl font-bold text-slate-800 leading-tight mb-6">${q.text}</h3>
             <div class="space-y-3 mt-auto">
               ${['A','B','C'].map(opt => `
-                <div class="flex items-center p-3.5 border border-slate-100 rounded-xl bg-slate-50/50 text-sm">
+                <div class="flex items-start p-3 sm:p-3.5 border border-slate-100 rounded-xl bg-slate-50/50 text-sm">
                   <span class="w-7 h-7 flex items-center justify-center bg-white border border-slate-200 rounded-lg font-bold text-primary mr-3 shrink-0">${opt}</span>
                   <span class="text-slate-600">${q['option'+opt]}</span>
                 </div>
@@ -296,7 +332,7 @@ function renderSectionCard(cat) {
               <h4 class="text-sm font-bold text-slate-400 uppercase mb-2">Option ${q.correctOption} is correct</h4>
               <p class="text-lg font-extrabold text-slate-900 leading-tight mb-8">${q['option'+q.correctOption]}</p>
               
-              <div class="p-5 bg-white border border-slate-100 rounded-2xl text-left shadow-sm">
+              <div class="p-4 sm:p-5 bg-white border border-slate-100 rounded-2xl text-left shadow-sm">
                 <span class="text-[10px] font-bold text-primary uppercase tracking-widest mb-2 block">Why is this correct?</span>
                 <p class="text-sm text-slate-600 leading-relaxed">${q.explanation || 'Study this concept in the K53 Handbook for more details.'}</p>
               </div>
@@ -307,15 +343,15 @@ function renderSectionCard(cat) {
           </div>
         </div>
       </div>
-      <div class="flex items-center justify-between gap-4">
-        <button onclick="changeCard('${cat}', -1)" class="px-6 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors shadow-sm shrink-0">← Prev</button>
-        <div class="flex-grow text-center">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+        <button onclick="changeCard('${cat}', -1)" class="w-full sm:w-auto px-4 sm:px-6 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors shadow-sm shrink-0">← Prev</button>
+        <div class="w-full sm:flex-grow text-center order-first sm:order-none">
            <div class="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
              <div class="h-full bg-primary" style="width: ${((idx + 1) / questions.length) * 100}%"></div>
            </div>
            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2 block">${idx + 1} of ${questions.length} Questions</span>
         </div>
-        <button onclick="changeCard('${cat}', 1)" class="px-6 py-3 bg-primary text-white rounded-xl text-sm font-bold hover:opacity-90 transition-opacity shadow-lg shadow-primary/20 shrink-0">Next →</button>
+        <button onclick="changeCard('${cat}', 1)" class="w-full sm:w-auto px-4 sm:px-6 py-3 bg-primary text-white rounded-xl text-sm font-bold hover:opacity-90 transition-opacity shadow-lg shadow-primary/20 shrink-0">Next →</button>
       </div>
     </div>
   `;
@@ -337,6 +373,14 @@ const observer = new IntersectionObserver((entries) => {
     }
   });
 }, { threshold: 0.2, rootMargin: '-100px 0px -50% 0px' });
+
+function startObserving() {
+  categories.forEach(c => {
+    const section = document.getElementById(`section-${c.key}`);
+    if (section) observer.observe(section);
+  });
+  updateActiveNav('Welcome');
+}
 
 let studyStartTime = Date.now();
 async function trackActivity(type, amount = 1) {
